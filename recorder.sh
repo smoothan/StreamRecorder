@@ -185,7 +185,8 @@ while true; do
   then
     #DID=$(you-get -u "$LIVE_URL"|sed -n '8p'|cut -c 33-|cut -d '.' -f 1)
     DID=$(you-get -u "$LIVE_URL"|sed -n '8p'|cut -c 28-|cut -d '/' -f 2|cut -d '.' -f 1)
-    REAL_URL="https://akm-tct.douyucdn.cn/live/${DID}.flv?uuid="
+    #REAL_URL="https://akm-tct.douyucdn.cn/live/${DID}.flv?uuid="
+    REAL_URL="https://hdltctwk.douyucdn2.cn/live/${DID}.flv?uuid="
       if [ "$STREAMORRECORD" == "both" ] 
       then
           ffmpeg \
