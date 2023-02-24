@@ -26,6 +26,11 @@ SAVEFORMAT=$(grep "Saveformat" ./config/global.config|awk -F = '{print $2}')
 [ "$SITE" == "bilibili" ] && LIVE_URL="https://live.bilibili.com/$CHANNELID"
 [ "$SITE" == "twitch" ] && LIVE_URL="https://www.twitch.tv/$CHANNELID"
 [ "$SITE" == "twitcast" ] && LIVE_URL="https://twitcasting.tv/$CHANNELID"
+[ "$SITE" == "huya" ] && LIVE_URL="https://www.huya.com/$CHANNELID"
+[ "$SITE" == "afree" ] && LIVE_URL="https://play.afreecatv.com/$CHANNELID"
+[ "$SITE" == "bigo" ] && LIVE_URL="https://www.bigo.tv/$CHANNELID"
+[ "$SITE" == "douyu" ] && LIVE_URL="https://www.douyu.com/$CHANNELID"
+
 
 while true; do
   # Monitor live streams of specific channel
@@ -47,6 +52,22 @@ while true; do
       else
         wget -q -O- "https://api.live.bilibili.com/room/v1/Room/get_info?room_id=$CHANNELID&from=room"|grep -q '\"live_status\"\:1' && break
       fi
+    fi
+    	if [ "$SITE" == "huya" ]
+      then
+        curl "https://mp.huya.com/cache.php?m=Live&do=profileRoom&roomid=$CHANNELID"|grep -q 'baseS' && break
+    fi
+	if [ "$SITE" == "douyu" ]
+      then
+        curl -A "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 5.0)" "https://open.douyucdn.cn/api/RoomApi/room/$CHANNELID"|grep -q '"room_status":"1"' && break
+    fi
+	if [ "$SITE" == "afree" ]
+      then
+        curl -A "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 5.0)" "https://bjapi.afreecatv.com/api/$CHANNELID/station"|grep -q 'password' && break
+    fi
+	if [ "$SITE" == "bigo" ]
+      then
+        curl -A "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 5.0)" "https://www.bigo.tv/OInterface/getVideoParam?bigoId=$CHANNELID"|grep -q 'tmp' && break
     fi
     if [ "$SITE" == "twitch" ]
     then
@@ -77,7 +98,7 @@ while true; do
   #Fetch live information
   if [ "$SITE" == "youtube" ]
   then
-    METADATA=$(youtube-dl --get-id --get-title --get-thumbnail --get-description \
+    METADATA=$(yt-dlp --get-id --get-title --get-thumbnail --get-description \
     --no-check-certificate --no-playlist --playlist-items 1 \
     "${LIVE_URL}" 2>/dev/null)
     [ -z "$METADATA" ] && echo "$LOG_PREFIX skip...youtube metadata is empty!" && continue
@@ -101,7 +122,7 @@ while true; do
     # Savetitle
     TITLE=$(you-get -i "$LIVE_URL"|sed -n '2p'|cut -c 22-|cut -d '.' -f 1|sed 's/[()/\\!-\$]//g')
     # Record using MPEG-2 TS format to avoid broken file caused by interruption
-    FNAME="bil_${CHANNELID}_${TITLE}_$(date +"%Y%m%d_%H%M%S").${SAVEFORMAT}"
+    FNAME="bil_${CHANNELID}_$(date +"%Y%m%d_%H%M%S").${SAVEFORMAT}"
   fi
   if [ "$SITE" == "twitch" ]
   then
@@ -119,6 +140,35 @@ while true; do
     #LIVEDL_FNAME="${ID}_${MOVIEID}.${SAVEFORMAT}" 
     FNAME="twitcast_$(date +"%Y%m%d_%H%M%S")_${CHANNELID}.${SAVEFORMAT}"
   fi
+  if [ "$SITE" == "huya" ]
+  then
+    # Savetitle
+    TITLE=$(you-get -i "$LIVE_URL"|sed -n '2p'|cut -c 22-|cut -d '.' -f 1|sed 's/[()/\\!-\$]//g')
+    # Record using MPEG-2 TS format to avoid broken file caused by interruption
+    FNAME="huya_${CHANNELID}_${TITLE}_$(date +"%Y%m%d_%H%M%S").${SAVEFORMAT}"
+  fi
+  if [ "$SITE" == "afree" ]
+  then
+    # Savetitle
+    TITLE=$(you-get -i "$LIVE_URL"|sed -n '2p'|cut -c 22-|cut -d '.' -f 1|sed 's/[()/\\!-\$]//g')
+    # Record using MPEG-2 TS format to avoid broken file caused by interruption
+    FNAME="afree_${CHANNELID}_${TITLE}_$(date +"%Y%m%d_%H%M%S").${SAVEFORMAT}"
+  fi   
+  if [ "$SITE" == "bigo" ]
+  then
+    # Savetitle
+    TITLE=$(you-get -i "$LIVE_URL"|sed -n '2p'|cut -c 22-|cut -d '.' -f 1|sed 's/[()/\\!-\$]//g')
+    # Record using MPEG-2 TS format to avoid broken file caused by interruption
+    FNAME="Bigo_${CHANNELID}_${TITLE}_$(date +"%Y%m%d_%H%M%S").${SAVEFORMAT}"
+  fi
+  if [ "$SITE" == "douyu" ]
+  then
+    # Savetitle
+    TITLE=$(you-get -i "$LIVE_URL"|sed -n '2p'|cut -c 22-|cut -d '.' -f 1|sed 's/[()/\\!-\$]//g')
+    # Record using MPEG-2 TS format to avoid broken file caused by interruption
+    FNAME="Douyu_${CHANNELID}_$(date +"%Y%m%d_%H%M%S").${SAVEFORMAT}"
+  fi
+  
   # Print logs
   echo "$LOG_PREFIX Start recording, stream saved to ${SAVEFOLDER}${FOLDERBYDATE}/${FNAME}"
   [ "$SITE" == "youtube" ] || [ "$SITE" == "twitch" ] && echo "$LOG_PREFIX metadata saved to ${SAVEFOLDER}${FOLDERBYDATE}/${FNAME}.info.txt"
@@ -130,34 +180,93 @@ while true; do
   # Use streamlink "--hls-live-restart" parameter to record for HLS seeking support
   #M3U8_URL=$(streamlink --stream-url "https://www.youtube.com/watch?v=${ID}" "best")
   #ffmpeg   -i "$M3U8_URL" -codec copy   -f hls -hls_time 3600 -hls_list_size 0 "${SAVEFOLDER}${FOLDERBYDATE}/${FNAME}" > "${LOGFOLDER}${FNAME}.log" 2>&1
-  if [ "$STREAMORRECORD" == "both" ]
+
+  if [ "$SITE" == "douyu" ]
   then
-    streamlink "$LIVE_URL" "1080p,720p,best" -o - | ffmpeg -re -i pipe:0 \
-    -codec copy -f mpegts "${SAVEFOLDER}${FOLDERBYDATE}/${FNAME}" \
-    -vcodec copy -acodec aac -strict -2 -f flv "${RTMPURL}" \
-    > "${LOGFOLDER}${FNAME}.streaming.log" 2>&1
-    STREAMSUCCESS=$?
-  elif [ "$STREAMORRECORD" == "record" ]
+    #DID=$(you-get -u "$LIVE_URL"|sed -n '8p'|cut -c 33-|cut -d '.' -f 1)
+    DID=$(you-get -u "$LIVE_URL"|sed -n '8p'|cut -c 28-|cut -d '/' -f 2|cut -d '.' -f 1)
+    REAL_URL="https://akm-tct.douyucdn.cn/live/${DID}.flv?uuid="
+      if [ "$STREAMORRECORD" == "both" ] 
+      then
+          ffmpeg \
+          -headers "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.42" \
+          -headers "referer: https://www.douyu.com/${CHANNELID}" \
+          -re -i "$REAL_URL" \
+          -vcodec copy -acodec aac -strict -2 \
+          -f flv -y -flvflags no_duration_filesize "${RTMPURL}" \
+          "${SAVEFOLDER}${FOLDERBYDATE}/${FNAME}"  \
+          > "${LOGFOLDER}${FNAME}.streaming.log" 2>&1 
+      elif [ "$STREAMORRECORD" == "record" ]
+      then
+          ffmpeg \
+          -headers "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.42" \
+          -headers "referer: https://www.douyu.com/${CHANNELID}" \
+          -re -i "$REAL_URL" \
+          -vcodec copy -acodec aac -strict -2 \
+          -f flv -y -flvflags no_duration_filesize \
+          "${SAVEFOLDER}${FOLDERBYDATE}/${FNAME}"  \
+          > "${LOGFOLDER}${FNAME}.log" 2>&1 
+          STREAMSUCCESS=$?
+      elif [ "$STREAMORRECORD" == "stream" ]
+      then
+          ffmpeg \
+          -headers "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.42" \
+          -headers "referer: https://www.douyu.com/${CHANNELID}" \
+          -re -i "$REAL_URL" \
+          -vcodec copy -acodec aac -strict -2 \
+          -f flv -y -flvflags no_duration_filesize "${RTMPURL}" \
+          > "${LOGFOLDER}${FNAME}.streaming.log" 2>&1 
+      fi
+  elif [ "$SITE" != "douyu" ]
   then
-    streamlink --loglevel trace -o "${SAVEFOLDER}${FOLDERBYDATE}/${FNAME}" \
-    "$LIVE_URL" "1080p,720p,best" > "${LOGFOLDER}${FNAME}.log" 2>&1
-  elif [ "$STREAMORRECORD" == "stream" ]
-  then
-    streamlink "$LIVE_URL" "1080p,720p,best" -o - | ffmpeg -re -i pipe:0 \
-    -vcodec copy -acodec aac -strict -2 -f flv "${RTMPURL}" \
-    > "${LOGFOLDER}${FNAME}.streaming.log" 2>&1 
+      if [ "$STREAMORRECORD" == "both" ] 
+      then
+         streamlink "$LIVE_URL" "1080p,1080p60,best" -o - | ffmpeg -re -i pipe:0 \
+         -codec copy -f mpegts "${SAVEFOLDER}${FOLDERBYDATE}/${FNAME}" \
+         -vcodec copy -acodec aac -strict -2 -f flv "${RTMPURL}" \
+         > "${LOGFOLDER}${FNAME}.streaming.log" 2>&1
+         STREAMSUCCESS=$?
+      elif [ "$STREAMORRECORD" == "record" ]
+      then
+         streamlink --loglevel trace -o "${SAVEFOLDER}${FOLDERBYDATE}/${FNAME}" \
+         "$LIVE_URL" "1080p,1080p60,1440p,1440p60,best" > "${LOGFOLDER}${FNAME}.log" 2>&1
+      elif [ "$STREAMORRECORD" == "stream" ]
+      then
+         streamlink "$LIVE_URL" "1080p,1080p60,best" -o - | ffmpeg -re -i pipe:0 \
+         -vcodec copy -acodec aac -strict -2 -f flv "${RTMPURL}" \
+         > "${LOGFOLDER}${FNAME}.streaming.log" 2>&1   
+      fi
   fi
   # backup stream if autobackup is on 
   sleep 5 
-  if [ "$AUTOBACKUP" == "on" ] && [ "$STREAMORRECORD" != "stream" ]
+  if [ "$SITE" == "douyu" ]
+  then  
+
+      if [ "$AUTOBACKUP" == "on" ] && [ "$STREAMORRECORD" != "stream" ]
+      then
+      REALTIME=$(date +%s)
+      FILETIME=$(stat -c %Y ${LOGFOLDER}${FNAME}.log)
+      TIMEDIF=$[$REALTIME - $FILETIME]        
+        if ([ "$STREAMORRECORD" == "record" ] && tail -n 5 "${LOGFOLDER}${FNAME}.log"|grep -q "muxing overhead") || [ $TIMEDIF -gt 60 ] || [ "X$STREAMSUCCESS" == "X0" ]
+        then
+           echo "$LOG_PREFIX more than 60 second, stop and next step."
+           ./autobackup.sh $NAME $SITE $FOLDERBYDATE $FNAME &
+        else
+           echo "$LOG_PREFIX stream record fail, check ${LOGFOLDER}${FNAME}.log and ${LOGFOLDER}${FNAME}.streaming.log for detail."
+        fi
+      fi  
+  elif [ "$SITE" != "douyu" ]
   then
-    if ([ "$STREAMORRECORD" == "record" ] && tail -n 5 "${LOGFOLDER}${FNAME}.log"|grep -q "Stream ended") || [ "X$STREAMSUCCESS" == "X0" ]
-    then
-      ./autobackup.sh $NAME $SITE $FOLDERBYDATE $FNAME &
-    else
-      echo "$LOG_PREFIX stream record fail, check ${LOGFOLDER}${FNAME}.log and ${LOGFOLDER}${FNAME}.streaming.log for detail."
-    fi
-  fi  
+      if [ "$AUTOBACKUP" == "on" ] && [ "$STREAMORRECORD" != "stream" ]
+      then
+        if ([ "$STREAMORRECORD" == "record" ] && tail -n 5 "${LOGFOLDER}${FNAME}.log"|grep -q "Stream ended") || [ "X$STREAMSUCCESS" == "X0" ]
+        then
+         ./autobackup.sh $NAME $SITE $FOLDERBYDATE $FNAME &
+        else
+           echo "$LOG_PREFIX stream record fail, check ${LOGFOLDER}${FNAME}.log and ${LOGFOLDER}${FNAME}.streaming.log for detail."
+        fi
+      fi 
+  fi
 
   # Exit if we just need to record current stream
   LOG_PREFIX="$(date +"[%Y-%m-%d %H:%M:%S]") ===$SITE==="
