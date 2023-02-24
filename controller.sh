@@ -25,6 +25,10 @@ YOUTUBE=$(grep "Youtube" ./config/"$1".config|awk -F = '{print $2}')
 BILIBILI=$(grep "Bilibili" ./config/"$1".config|awk -F = '{print $2}')
 TWITCH=$(grep "Twitch" ./config/"$1".config|awk -F = '{print $2}')
 TWITCAST=$(grep "Twitcast" ./config/"$1".config|awk -F = '{print $2}')
+HUYA=$(grep "Huya" ./config/"$1".config|awk -F = '{print $2}')
+AFREE=$(grep "Afree" ./config/"$1".config|awk -F = '{print $2}')
+BIGO=$(grep "Bigo" ./config/"$1".config|awk -F = '{print $2}')
+DOUYU=$(grep "Douyu" ./config/"$1".config|awk -F = '{print $2}')
 STREAMORRECORD=$(grep "StreamOrRecord" ./config/global.config|awk -F = '{print $2}')
 if grep -q "StreamOrRecord" ./config/${1}.config
 then
@@ -56,6 +60,7 @@ sleep 10
 fi
 
 #bil    
+
 if [[ -n "$BILIBILI" ]]; then
 [[ ! -d "${SAVEFOLDER}bilibili" ]]&&mkdir ${SAVEFOLDER}bilibili
 [[ ! -d "${SAVEFOLDER}bilibili/metadata" ]]&&mkdir ${SAVEFOLDER}bilibili/metadata
@@ -65,7 +70,51 @@ sleep 5
 sleep 10
 fi
 
+#huya    
+
+if [[ -n "$HUYA" ]]; then
+[[ ! -d "${SAVEFOLDER}huya" ]]&&mkdir ${SAVEFOLDER}huya
+[[ ! -d "${SAVEFOLDER}huya/metadata" ]]&&mkdir ${SAVEFOLDER}huya/metadata
+[[ ! -d "${LOGFOLDER}huya" ]]&&mkdir ${LOGFOLDER}huya
+sleep 5
+./recorder.sh huya $HUYA $1 ${SAVEFOLDER}huya/ ${LOGFOLDER}huya/ $FORMAT $LOOP $INTERVAL $STREAMORRECORD $RTMPURL &
+sleep 10
+fi
+
+#afree    
+
+if [[ -n "$AFREE" ]]; then
+[[ ! -d "${SAVEFOLDER}afree" ]]&&mkdir ${SAVEFOLDER}afree
+[[ ! -d "${SAVEFOLDER}afree/metadata" ]]&&mkdir ${SAVEFOLDER}afree/metadata
+[[ ! -d "${LOGFOLDER}afree" ]]&&mkdir ${LOGFOLDER}afree
+sleep 5
+./recorder.sh afree $AFREE $1 ${SAVEFOLDER}afree/ ${LOGFOLDER}afree/ $FORMAT $LOOP $INTERVAL $STREAMORRECORD $RTMPURL &
+sleep 10
+fi
+
+#bigo
+if [[ -n "$BIGO" ]]; then
+[[ ! -d "${SAVEFOLDER}bigo" ]]&&mkdir ${SAVEFOLDER}bigo
+[[ ! -d "${SAVEFOLDER}bigo/metadata" ]]&&mkdir ${SAVEFOLDER}bigo/metadata
+[[ ! -d "${LOGFOLDER}bigo" ]]&&mkdir ${LOGFOLDER}bigo
+sleep 5
+./recorder.sh bigo $BIGO $1 ${SAVEFOLDER}bigo/ ${LOGFOLDER}bigo/ $FORMAT $LOOP $INTERVAL $STREAMORRECORD $RTMPURL &
+sleep 10
+fi
+
+#douyu
+if [[ -n "$DOUYU" ]]; then
+[[ ! -d "${SAVEFOLDER}douyu" ]]&&mkdir ${SAVEFOLDER}douyu
+[[ ! -d "${SAVEFOLDER}douyu/metadata" ]]&&mkdir ${SAVEFOLDER}douyu/metadata
+[[ ! -d "${LOGFOLDER}douyu" ]]&&mkdir ${LOGFOLDER}douyu
+sleep 5
+./recorder.sh douyu $DOUYU $1 ${SAVEFOLDER}douyu/ ${LOGFOLDER}douyu/ $FORMAT $LOOP $INTERVAL $STREAMORRECORD $RTMPURL &
+sleep 10
+fi
+
+
 #twitch twitch_id [format] [loop|once] [interval] [savefolder]
+
 if [[ -n "$TWITCH" ]]; then
 [[ ! -d "${SAVEFOLDER}twitch" ]]&&mkdir ${SAVEFOLDER}twitch
 [[ ! -d "${SAVEFOLDER}twitch/metadata" ]]&&mkdir ${SAVEFOLDER}twitch/metadata
@@ -74,6 +123,7 @@ sleep 5
 ./recorder.sh twitch $TWITCH $1 ${SAVEFOLDER}twitch/ ${LOGFOLDER}twitch/ $FORMAT $LOOP $INTERVAL $STREAMORRECORD $RTMPURL &
 sleep 10
 fi
+
 #TWITCAST
 if [[ -n "$TWITCAST" ]]; then
 [[ ! -d "${SAVEFOLDER}twitcast" ]]&&mkdir ${SAVEFOLDER}twitcast
