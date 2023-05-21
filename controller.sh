@@ -29,6 +29,8 @@ HUYA=$(grep "Huya" ./config/"$1".config|awk -F = '{print $2}')
 AFREE=$(grep "Afree" ./config/"$1".config|awk -F = '{print $2}')
 BIGO=$(grep "Bigo" ./config/"$1".config|awk -F = '{print $2}')
 DOUYU=$(grep "Douyu" ./config/"$1".config|awk -F = '{print $2}')
+DOUYIN=$(grep "Douyin" ./config/"$1".config|awk -F = '{print $2}')
+SEARCHID=$(grep "Search" ./config/"$1".config|awk -F = '{print $2}')
 STREAMORRECORD=$(grep "StreamOrRecord" ./config/global.config|awk -F = '{print $2}')
 if grep -q "StreamOrRecord" ./config/${1}.config
 then
@@ -112,6 +114,15 @@ sleep 5
 sleep 10
 fi
 
+#douyin
+if [[ -n "$DOUYIN" ]]; then
+[[ ! -d "${SAVEFOLDER}douyin" ]]&&mkdir ${SAVEFOLDER}douyin
+[[ ! -d "${SAVEFOLDER}douyin/metadata" ]]&&mkdir ${SAVEFOLDER}douyin/metadata
+[[ ! -d "${LOGFOLDER}douyin" ]]&&mkdir ${LOGFOLDER}douyin
+sleep 5
+./recorder.sh douyin $DOUYIN $1 ${SAVEFOLDER}douyin/ ${LOGFOLDER}douyin/ $FORMAT $LOOP $INTERVAL $STREAMORRECORD $RTMPURL &
+sleep 10
+fi
 
 #twitch twitch_id [format] [loop|once] [interval] [savefolder]
 
