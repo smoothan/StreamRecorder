@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ -z "$1" ]
 then
-  echo "usage: $0 [all|name] [youtube|bilibili|twitch|twitcast|huya|afree|bigo|douyu] [folderbydate] [filename]"
+  echo "usage: $0 [all|name] [youtube|bilibili|twitch|twitcast|huya|afree|bigo|douyu|douyin] [folderbydate] [filename]"
   exit 1
 fi
 if [ "$1" == "all" ] && [ -n "$2" ]
