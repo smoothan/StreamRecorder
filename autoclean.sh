@@ -7,7 +7,7 @@ fi
 if [ "$1" == "all" ] && [ -n "$2" ]
 then
   echo "wrong parameter, only accept all or [name] [site] [date] [filename]"
-  echo "usage: $0 [all|name] [youtube|bilibili|twitch|twitcast|huya|afree|douyu] [folderbydate] [filename]"
+  echo "usage: $0 [all|name] [youtube|bilibili|twitch|twitcast|huya|afree|douyu|douyin] [folderbydate] [filename]"
   exit 1
 fi
 NAME="${1:-all}"
