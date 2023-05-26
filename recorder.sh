@@ -101,7 +101,7 @@ while true; do
   #Fetch live information
   if [ "$SITE" == "youtube" ]
   then
-    METADATA=$(youtube-dl --get-id --get-title --get-thumbnail --get-description \
+    METADATA=$(yt-dlp --get-id --get-title --get-thumbnail --get-description \
     --no-check-certificate --no-playlist --playlist-items 1 \
     "${LIVE_URL}" 2>/dev/null)
     [ -z "$METADATA" ] && echo "$LOG_PREFIX skip...youtube metadata is empty!" && continue
@@ -129,7 +129,7 @@ while true; do
   fi
   if [ "$SITE" == "twitch" ]
   then
-    METADATA=$(youtube-dl --get-id --get-title --get-description "$LIVE_URL")
+    METADATA=$(yt-dlp --get-id --get-title --get-description "$LIVE_URL")
     #TITLE=$(echo "$METADATA" | sed -n '3p'|sed 's/[()/\\!-\$]//g')
     ID=$(echo "$METADATA" | sed -n '2p')
     #FNAME="twitch_${ID}_${TITLE}_$(date +"%Y%m%d_%H%M%S").${SAVEFORMAT}"
